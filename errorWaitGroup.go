@@ -69,6 +69,10 @@ func (a Admin) PollInterrupt() (Interrupt, bool) {
 	}
 }
 
+func (a *Admin) Ewg() *ErrorWaitGroup{
+	return a.ewg
+}
+
 // Sends an interrupt in its interrupt channel
 func (a *Admin) interrupt(inter Interrupt) {
 	a.interruptCh <- inter
