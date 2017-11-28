@@ -1,6 +1,7 @@
 package errorSync
 
 import (
+	"fmt"
 	"sync"
 )
 
@@ -87,6 +88,7 @@ func (a *Admin) NotifyDone() {
 	delete(a.ewg.admins, a.id)
 	a.ewg.safe.Unlock()
 	a.Notify(NotifCode_Done, nil, nil)
+	fmt.Printf("Admin Id: %d\t Done\n", a.id.id)
 }
 
 func (a *Admin) NotifyError(err error) {
@@ -174,26 +176,26 @@ func (ewg *ErrorWaitGroup) Wait() (Notif, bool) {
 		ewg.safe.Unlock()
 	}
 	if interruptAll {
-		ewg.InterruptAll(Interrupt{iCode, nil})
+		ewg.InterruptAll(iCode, nil)
 	}
 	return _n, isDone
 }
 
 // Broadcasts an interrupt to all the admins
-func (ewg *ErrorWaitGroup) InterruptAll(inter Interrupt) {
+func (ewg *ErrorWaitGroup) InterruptAll(iCode InterruptCode, info interface{}) {
 	ewg.safe.Lock()
 	for id, _ := range ewg.admins {
-		ewg.admins[id].interrupt(inter)
+		ewg.admins[id].interrupt(Interrupt{iCode, info})
 	}
 	ewg.safe.Unlock()
 }
 
 // Interrupts a single admin
-func (ewg *ErrorWaitGroup) Interrupt(id AdminId, inter Interrupt) {
+func (ewg *ErrorWaitGroup) Interrupt(id AdminId, iCode InterruptCode, info interface{}) {
 	ewg.safe.Lock()
 	admin := ewg.admins[id]
 	if admin != nil {
-		admin.interrupt(inter)
+		admin.interrupt(Interrupt{iCode, info})
 	}
 	ewg.safe.Unlock()
 }
